@@ -85,7 +85,7 @@ func readCurrentConfig() (string, []string, error) {
 		return "", nil, err
 	}
 
-	return string(strings.TrimSpace(string(wanted))), strings.Split(strings.TrimSpace(string(modes)), "\n"), nil
+	return strings.TrimSpace(string(wanted)), strings.Split(strings.TrimSpace(string(modes)), "\n"), nil
 }
 
 func nextMode(current string, available []string) string {
