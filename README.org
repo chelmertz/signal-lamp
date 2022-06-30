@@ -1,0 +1,56 @@
+* signal lamp
+
+Switches between dark- & light mode easily.
+
+Idempotent one off script, not a daemon.
+
+Built for my system, including:
+
+- vscode
+- idea
+- gnome terminal profile
+  - bat
+  - delta
+  - powerline
+- google chrome dark mode extension
+- doom emacs
+
+** Adding light/dark mode support for more /things/
+
+Create folders in *XDG_CONFIG_HOME/signal-lamp/triggers/*, and in each folder, create executable scripts that reacts to =$1= (the first argument) being any mode (e.g. *dark* or *light*).
+
+Make the scripts contain some logic for changing the settings in your program.
+
+** CLI commands
+
+*Toggle* the state, and save the new state to the config file:
+#+begin_src
+signal-lamp -t
+#+end_src
+
+*Query* the current state:
+#+begin_src shell
+signal-lamp -q
+#+end_src
+
+** contrib
+
+*** i3blocks for toggling & showing status
+
+I use i3blocks, so this is what I want to support.
+
+*** my silly all in one helper
+
+When developing, this helps me iterate:
+
+#+begin_src shell
+go build ./cmd/calle && mv ./calle ~/.config/signal-lamp/triggers/calle                                                                                   ─╯
+#+end_src
+
+
+** Using themes, or more states than two, rather than "dark & light mode"
+
+All modes are stored in *$XDG_CONFIG_HOME/signal-lamp/modes*, one per line.
+
+The wanted mode setting is stored in *$XDG_CONFIG_HOME/signal-lamp/wanted* and contains a single string, matching the available modes.
+If the file is missing or contains something else, we fallback to the first mode in the *modes* file, and error out if that file does not exist.
