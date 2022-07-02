@@ -21,6 +21,15 @@ Create folders in *XDG_CONFIG_HOME/signal-lamp/triggers/*, and in each folder, c
 
 Make the scripts contain some logic for changing the settings in your program.
 
+-----
+
+For example, if you'd like to log changes, this script would suffice:
+
+#+begin_src shell
+#!/bin/sh
+logger -t signal-lamp -- "changing to $1"
+#+end_src
+
 ** CLI commands
 
 *Toggle* the state, and save the new state to the config file:
