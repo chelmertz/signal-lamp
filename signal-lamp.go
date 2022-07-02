@@ -97,7 +97,7 @@ func nextMode(current string, available []string) string {
 	// current is not in available, which is weird.
 	// don't break anything, fallback to what's hopefully working.
 	fmt.Println("Oops, did not find current mode", current, "in available modes", available)
-	return current
+	return ""
 }
 
 func triggerScripts(newMode string) error {
