@@ -25,74 +25,58 @@ func createFolder(foldername string) error {
 	return nil
 }
 
-func fileWithDefaultContent(filename, content string) error {
-	_, err := os.Stat(filename)
+func fileWithDefaultContent(filename, defaultContent string) (string, error) {
+	content, err := os.ReadFile(filename)
 	if errors.Is(err, os.ErrNotExist) {
-		err = os.WriteFile(filename, []byte(content), 0664)
+		fmt.Printf("file %s not found, trying to create it\n", filename)
+		err = os.WriteFile(filename, []byte(defaultContent), 0664)
 		if err != nil {
-			return fmt.Errorf("could not write file %s: %w", filename, err)
+			return "", fmt.Errorf("could not write file %s: %w", filename, err)
+		} else {
+			return defaultContent, nil
 		}
 	} else if err != nil {
-		return fmt.Errorf("could not stat file %s: %w", filename, err)
+		return "", fmt.Errorf("could not stat file %s: %w", filename, err)
 	}
-	return nil
+	return string(content), nil
 }
 
-func setupConfig() error {
+type config struct {
+	wanted string
+	modes  []string
+}
+
+// This will set a default config (touch the file system) if no config exists.
+func getConfig() (*config, error) {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
-		return fmt.Errorf("could not get user config dir: %w", err)
+		return nil, fmt.Errorf("could not get user config dir: %w", err)
 	}
 
 	slDir := filepath.Join(configDir, "signal-lamp")
 	err = createFolder(slDir)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	err = createFolder(filepath.Join(slDir, "triggers"))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = fileWithDefaultContent(filepath.Join(slDir, "modes"), "dark\nlight\n")
+	modes, err := fileWithDefaultContent(filepath.Join(slDir, "modes"), "dark\nlight\n")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = fileWithDefaultContent(filepath.Join(slDir, "wanted"), "dark\n")
+	wanted, err := fileWithDefaultContent(filepath.Join(slDir, "wanted"), "dark\n")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
-}
-
-// TODO combine this and setupConfig(), touch the fs less
-// TODO make a struct of the result here
-func readCurrentConfig() (string, []string, error) {
-	err := setupConfig()
-	if err != nil {
-		return "", nil, err
-	}
-
-	configDir, err := os.UserConfigDir()
-	if err != nil {
-		return "", nil, err
-	}
-
-	slDir := filepath.Join(configDir, "signal-lamp")
-
-	wanted, err := os.ReadFile(filepath.Join(slDir, "wanted"))
-	if err != nil {
-		return "", nil, err
-	}
-
-	modes, err := os.ReadFile(filepath.Join(slDir, "modes"))
-	if err != nil {
-		return "", nil, err
-	}
-
-	return strings.TrimSpace(string(wanted)), strings.Split(strings.TrimSpace(string(modes)), "\n"), nil
+	return &config{
+		wanted: strings.TrimSpace(wanted),
+		modes:  strings.Split(strings.TrimSpace(modes), "\n"),
+	}, nil
 }
 
 func nextMode(current string, available []string) string {
@@ -102,7 +86,6 @@ func nextMode(current string, available []string) string {
 		}
 	}
 	// current is not in available, which is weird.
-	// don't break anything, fallback to what's hopefully working.
 	fmt.Println("Oops, did not find current mode", current, "in available modes", available)
 	return ""
 }
@@ -157,10 +140,12 @@ func main() {
 		toggle   = flag.Bool("t", false, "toggle config")
 	)
 	flag.Parse()
-	currentMode, availableModes, err := readCurrentConfig()
+
+	config, err := getConfig()
 	if err != nil {
 		panic(err)
 	}
+	currentMode, availableModes := config.wanted, config.modes
 
 	if *readConf {
 		fmt.Println(currentMode)
