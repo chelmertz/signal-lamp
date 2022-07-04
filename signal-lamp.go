@@ -151,10 +151,11 @@ func saveMode(mode string) error {
 	return err
 }
 
-var readConf = flag.Bool("q", false, "read config without changing mode")
-var toggle = flag.Bool("t", false, "toggle config")
-
 func main() {
+	var (
+		readConf = flag.Bool("q", false, "read config without changing mode")
+		toggle   = flag.Bool("t", false, "toggle config")
+	)
 	flag.Parse()
 	currentMode, availableModes, err := readCurrentConfig()
 	if err != nil {
