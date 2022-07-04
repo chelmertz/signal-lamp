@@ -156,20 +156,24 @@ func main() {
 		os.Exit(0)
 	}
 
+	var newMode string
 	if *toggle {
-		newMode := nextMode(currentMode, availableModes)
-		if newMode != currentMode {
-			fmt.Println("new mode", newMode)
+		newMode = nextMode(currentMode, availableModes)
+	} else {
+		newMode = flag.Arg(0)
+	}
 
-			err = triggerScripts(newMode)
-			if err != nil {
-				panic(err)
-			}
+	if newMode != currentMode {
+		fmt.Println("new mode", newMode)
 
-			err = saveMode(newMode)
-			if err != nil {
-				panic(err)
-			}
+		err = triggerScripts(newMode)
+		if err != nil {
+			panic(err)
+		}
+
+		err = saveMode(newMode)
+		if err != nil {
+			panic(err)
 		}
 	}
 }
