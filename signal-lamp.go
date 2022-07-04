@@ -86,7 +86,7 @@ func nextMode(current string, available []string) string {
 		}
 	}
 	// current is not in available, which is weird.
-	fmt.Println("Oops, did not find current mode", current, "in available modes", available)
+	fmt.Printf("Oops, did not find current mode '%s' in available modes %v\n", current, available)
 	return ""
 }
 
