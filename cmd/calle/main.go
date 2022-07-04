@@ -194,22 +194,6 @@ func gnomeTerminal(newMode string) {
 	}
 
 	// focus the previously active window again
-	//
-	// this doesn't work out of the box for me. tried:
-
-	// i3's focus_follows_mouse no
-
-	// time.Sleep() between wmctrl -ai and xdotool key above
-
-	// wmctrl -a Code before wmctrl -ai windowId (to deselect the current terminal I'm trying this manually from). the wmctrl -ai windowId seems to always fail
-
-	// wmctrl -a doesn't work as a oneoff from one terminal window to another (tried with i3 focus_follows_mouse no)
-
-	// wmctrl -va Terminal # in a new terminal actually changes the focus to a different terminal. maybe it's the ID that's wrong
-	// # this selects the terminal that's first in list of wmctrl -lx | grep Terminal
-	// taking that first terminals xprop -root| grep ACTIVE window id, and feeding it to wmctrl -vai DOES NOT WORK though
-	// wmctrl -vai 45254252 does the same thing - nothing
-
 	_, err = proc("xdotool", "windowfocus", "--sync", currentlyActiveXWindowId)
 	check(err)
 }
