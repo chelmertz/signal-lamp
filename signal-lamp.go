@@ -12,23 +12,36 @@ import (
 	"sync"
 )
 
+func createFolder(foldername string) error {
+	_, err := os.Stat(foldername)
+	if errors.Is(err, os.ErrNotExist) {
+		err = os.Mkdir(foldername, 0755)
+		if err != nil {
+			return fmt.Errorf("could not create folder %s: %w", foldername, err)
+		}
+	} else if err != nil {
+		return fmt.Errorf("could not find folder %s: %w", foldername, err)
+	}
+	return nil
+}
+
+func fileWithDefaultContent(filename, content string) error {
+	_, err := os.Stat(filename)
+	if errors.Is(err, os.ErrNotExist) {
+		err = os.WriteFile(filename, []byte(content), 0664)
+		if err != nil {
+			return fmt.Errorf("could not write file %s: %w", filename, err)
+		}
+	} else if err != nil {
+		return fmt.Errorf("could not stat file %s: %w", filename, err)
+	}
+	return nil
+}
+
 func setupConfig() error {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
-		return err
-	}
-
-	createFolder := func(foldername string) error {
-		_, err := os.Stat(foldername)
-		if errors.Is(err, os.ErrNotExist) {
-			err = os.Mkdir(foldername, 0755)
-			if err != nil {
-				return err
-			}
-		} else if err != nil {
-			return err
-		}
-		return nil
+		return fmt.Errorf("could not get user config dir: %w", err)
 	}
 
 	slDir := filepath.Join(configDir, "signal-lamp")
@@ -39,19 +52,6 @@ func setupConfig() error {
 	err = createFolder(filepath.Join(slDir, "triggers"))
 	if err != nil {
 		return err
-	}
-
-	fileWithDefaultContent := func(filename, content string) error {
-		_, err := os.Stat(filename)
-		if errors.Is(err, os.ErrNotExist) {
-			err = os.WriteFile(filename, []byte(content), 0664)
-			if err != nil {
-				return err
-			}
-		} else if err != nil {
-			return err
-		}
-		return nil
 	}
 
 	err = fileWithDefaultContent(filepath.Join(slDir, "modes"), "dark\nlight\n")
@@ -67,7 +67,14 @@ func setupConfig() error {
 	return nil
 }
 
+// TODO combine this and setupConfig(), touch the fs less
+// TODO make a struct of the result here
 func readCurrentConfig() (string, []string, error) {
+	err := setupConfig()
+	if err != nil {
+		return "", nil, err
+	}
+
 	configDir, err := os.UserConfigDir()
 	if err != nil {
 		return "", nil, err
@@ -148,13 +155,7 @@ var readConf = flag.Bool("q", false, "read config without changing mode")
 var toggle = flag.Bool("t", false, "toggle config")
 
 func main() {
-	err := setupConfig()
-	if err != nil {
-		panic(err)
-	}
-
 	flag.Parse()
-
 	currentMode, availableModes, err := readCurrentConfig()
 	if err != nil {
 		panic(err)
