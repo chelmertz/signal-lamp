@@ -101,6 +101,10 @@ func triggerScripts(newMode string) error {
 		return err
 	}
 
+	if len(matches) == 0 {
+		return nil
+	}
+
 	var wg sync.WaitGroup
 	for _, m := range matches {
 		wg.Add(1)
