@@ -10,13 +10,16 @@ import (
 	"strings"
 )
 
+// naïve helper for a naïve script
 func check(err error) {
 	if err != nil {
 		panic(err)
 	}
 }
 
-func vscode(configDir, newMode string) {
+func vscode(newMode string) {
+	configDir, err := os.UserConfigDir()
+	check(err)
 	vscodeSettings := filepath.Join(configDir, "Code", "User", "settings.json")
 	content, err := os.ReadFile(vscodeSettings)
 	check(err)
@@ -57,14 +60,26 @@ func proc(command string, args ...string) (stdout string, err error) {
 	return stdoutBuf.String(), nil
 }
 
-// [theme-name] => uuid
-func dconfDumpProfiles(dumpOutput string) (string, map[string]string, error) {
+type dconfProfileDump struct {
+	current string
+	// [theme-name] => uuid
+	profiles map[string]string
+	order    []string
+}
+
+// we need the order of the profiles as well, to target the correct profile
+// when changing the profile of the currently open gnome terminal windows
+func dconfDumpProfiles(dumpOutput string) (*dconfProfileDump, error) {
 	profileUuidByName := make(map[string]string)
 	profileBlocks := strings.Split(strings.TrimSpace(dumpOutput), "\n\n")
 	// the first part is the meta block
 	// alternatives : fmt.Sscanf, strings.Cut, strings.Split, regexp
-	defaultLine := strings.Split(profileBlocks[0], "\n")[1]
-	currentProfile := strings.Split(defaultLine, "'")[1]
+	metaLines := strings.Split(profileBlocks[0], "\n")
+	currentProfile := strings.Split(metaLines[1], "'")[1]
+	order := make([]string, 0)
+	for _, commas := range strings.Split(metaLines[2], ",") {
+		order = append(order, strings.Split(commas, "'")[1])
+	}
 
 	for _, p := range profileBlocks[1:] {
 		lines := strings.Split(p, "\n")
@@ -72,26 +87,40 @@ func dconfDumpProfiles(dumpOutput string) (string, map[string]string, error) {
 
 		_, err := fmt.Sscanf(lines[0], "[:%36s]", &uuid)
 		if err != nil {
-			return "", nil, fmt.Errorf("couldn't parse uuid from profile: %w", err)
+			return nil, fmt.Errorf("couldn't parse uuid from profile: %w", err)
 		}
-		fmt.Println("got uuid", uuid)
 
 		// above workaround of specifying length does not work here, profile names are of variable length
 		// the line we're trying to match: visible-name='dark'
 		lastLinesParts := strings.Split(lines[len(lines)-1], "'")
 		// in my testing, the profile name is always the last line. don't assume, check:
 		if lastLinesParts[0] != "visible-name=" {
-			return "", nil, fmt.Errorf("expected visible-name, got %v", lines)
+			return nil, fmt.Errorf("expected visible-name, got %v", lines)
 		}
 		name := lastLinesParts[1]
-		fmt.Println("got profile name", name, "from last line", lines[len(lines)-1])
 
 		profileUuidByName[name] = uuid
 	}
-	return currentProfile, profileUuidByName, nil
+	return &dconfProfileDump{
+		current:  currentProfile,
+		profiles: profileUuidByName,
+		order:    order,
+	}, nil
 }
 
-func gnomeTerminal(configDir, newMode string) {
+func gnomeTerminalProfileHotkey(order []string, needle string) (int, error) {
+	for i, uuid := range order {
+		if uuid == needle {
+			// gnome terminal profile menu is 1-indexed
+			return i + 1, nil
+		}
+	}
+	return 0, fmt.Errorf("could not find needle in order")
+}
+
+// Warning: the code in this function relies a lot on strings that happened to
+// be in the output on my Ubuntu instance at the time of writing this code.
+func gnomeTerminal(newMode string) {
 	// ~/.config/dconf/user is a binary file that contains the name of my dark & light profiles
 	// my profiles are "light" and "dark"
 	// gnome-terminal --profile=dark works (hard to control though, would be nicer to set the default for new terminals, and change the currently open ones)
@@ -103,14 +132,86 @@ func gnomeTerminal(configDir, newMode string) {
 	// list profiles, look for ones named ".*dark.*" or ".*light.*"
 	// current window (to refocus): xdotool getwindowfocus
 
-	_, err := proc("dconf", "dump", "/org/gnome/terminal/legacy/profiles:/")
-	//stdout, err := proc("dconf", "dump", "/org/gnome/terminal/legacy/profiles:/")
-	if err != nil {
+	stdout, err := proc("dconf", "dump", "/org/gnome/terminal/legacy/profiles:/")
+	check(err)
+
+	dconfDump, err := dconfDumpProfiles(stdout)
+	check(err)
+
+	var newProfileId string
+	for profileName, uuid := range dconfDump.profiles {
+		if strings.Contains(profileName, newMode) {
+			newProfileId = uuid
+			break
+		}
+	}
+
+	if newProfileId == "" || newProfileId == dconfDump.current {
+		fmt.Println("not switching gnome terminal profile")
 		return
 	}
 
-	//profiles := dconfDumpProfiles(stdout)
+	// set default profile for new instances of gnome terminal
+	_, err = proc("gsettings", "set", "org.gnome.Terminal.ProfilesList", "default", newProfileId)
+	check(err)
 
+	// list currently opened gnome terminal window IDs
+	xwindows, err := proc("wmctrl", "-lx")
+	check(err)
+	gnomeTerminalXWindowIds := make([]string, 0)
+	for _, line := range strings.Split(xwindows, "\n") {
+		if strings.Contains(line, "gnome-terminal-server.Gnome-terminal") {
+			gnomeTerminalXWindowIds = append(gnomeTerminalXWindowIds, strings.Split(line, " ")[0])
+		}
+	}
+
+	if len(gnomeTerminalXWindowIds) == 0 {
+		return
+	}
+
+	// get window ID of currently active window, to be able to focus it later
+	currentlyActiveXWindowId, err := proc("xdotool", "getwindowfocus")
+	check(err)
+	fmt.Println("active window", currentlyActiveXWindowId)
+
+	newProfileIndex, err := gnomeTerminalProfileHotkey(dconfDump.order, newProfileId)
+	check(err)
+
+	// loop through open gnome terminal instances
+	// set the current profile
+	for _, windowId := range gnomeTerminalXWindowIds {
+		// focus window
+
+		// spent a lot of time going down the "wmctrl -ai windowId" road here, don't do that
+		_, err = proc("xdotool", "windowfocus", "--sync", windowId)
+		check(err)
+
+		// set current profile
+		// WARNING: this relies on the "Enable the menu accelerator key (F10 by default)"
+		// setting being active, you find it in Preferences > Global > General
+		_, err = proc("xdotool", "key", "--clearmodifiers", "Shift+F10", "r", fmt.Sprint(newProfileIndex))
+		check(err)
+	}
+
+	// focus the previously active window again
+	//
+	// this doesn't work out of the box for me. tried:
+
+	// i3's focus_follows_mouse no
+
+	// time.Sleep() between wmctrl -ai and xdotool key above
+
+	// wmctrl -a Code before wmctrl -ai windowId (to deselect the current terminal I'm trying this manually from). the wmctrl -ai windowId seems to always fail
+
+	// wmctrl -a doesn't work as a oneoff from one terminal window to another (tried with i3 focus_follows_mouse no)
+
+	// wmctrl -va Terminal # in a new terminal actually changes the focus to a different terminal. maybe it's the ID that's wrong
+	// # this selects the terminal that's first in list of wmctrl -lx | grep Terminal
+	// taking that first terminals xprop -root| grep ACTIVE window id, and feeding it to wmctrl -vai DOES NOT WORK though
+	// wmctrl -vai 45254252 does the same thing - nothing
+
+	_, err = proc("xdotool", "windowfocus", "--sync", currentlyActiveXWindowId)
+	check(err)
 }
 
 func main() {
@@ -123,9 +224,7 @@ func main() {
 
 	fmt.Println("calle setting mode", newMode)
 
-	configDir, err := os.UserConfigDir()
-	check(err)
-
-	vscode(configDir, newMode)
-	gnomeTerminal(configDir, newMode)
+	vscode(newMode)
+	gnomeTerminal(newMode)
+	fmt.Println("calle done setting mode", newMode)
 }

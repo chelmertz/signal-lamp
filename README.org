@@ -4,17 +4,6 @@ Switches between dark- & light mode easily.
 
 Idempotent one off script, not a daemon.
 
-Built for my system, including:
-
-- vscode
-- idea
-- gnome terminal profile
-  - bat
-  - delta
-  - powerline
-- google chrome dark mode extension
-- doom emacs
-
 ** Adding light/dark mode support for more /things/
 
 Create folders in *XDG_CONFIG_HOME/signal-lamp/triggers/*, and in each folder, create executable scripts that reacts to =$1= (the first argument) being any mode (e.g. *dark* or *light*).
@@ -55,6 +44,16 @@ When developing, this helps me iterate:
 #+begin_src shell
 go build ./cmd/calle && mv ./calle ~/.config/signal-lamp/triggers/calle                                                                                   ─╯
 #+end_src
+
+Built for my system, including:
+
+- [X] vscode
+- [ ] idea
+- [X] gnome terminal profile
+- [ ] bat
+- [ ] delta
+- [ ] powerline
+- [ ] doom emacs
 
 
 ** Using themes, or more states than two, rather than "dark & light mode"

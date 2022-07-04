@@ -30,14 +30,14 @@ use-theme-colors=false
 use-theme-transparency=true
 visible-name='dark'
 `
-	current, profiles, err := dconfDumpProfiles(dconfDumpOutput)
+	dump, err := dconfDumpProfiles(dconfDumpOutput)
 
 	if err != nil {
 		t.Fatalf("wanted nil as error, got %v", err)
 	}
 
-	if current != "b0682302-667e-4ceb-b714-c05924ab92fc" {
-		t.Errorf("wrong current, got %s", current)
+	if dump.current != "b0682302-667e-4ceb-b714-c05924ab92fc" {
+		t.Errorf("wrong current, got %s", dump.current)
 	}
 
 	expectedProfiles := map[string]string{
@@ -45,15 +45,45 @@ visible-name='dark'
 		"dark":  "b1dcc9dd-5262-4d8d-a863-c897e6d979b9",
 	}
 
-	if len(profiles) != 2 {
-		t.Errorf("wrong profile len, got %v", profiles)
+	if len(dump.profiles) != 2 {
+		t.Errorf("wrong profile len, got %v", dump.profiles)
 	}
 
-	fmt.Printf("got map: %v\n", profiles)
+	fmt.Printf("got map: %v\n", dump.profiles)
 
 	for k, v := range expectedProfiles {
-		if actual, ok := profiles[k]; !ok || actual != v {
-			t.Errorf("mismatch between actual:\n%v\n\nand expected:\n%v", profiles, expectedProfiles)
+		if actual, ok := dump.profiles[k]; !ok || actual != v {
+			t.Errorf("mismatch between actual:\n%v\n\nand expected:\n%v", dump.profiles, expectedProfiles)
 		}
+	}
+
+	expectedOrder := []string{
+		"b1dcc9dd-5262-4d8d-a863-c897e6d979b9",
+		"b0682302-667e-4ceb-b714-c05924ab92fc",
+	}
+
+	if len(expectedOrder) != len(dump.order) {
+		t.Fatalf("mismatch between expected %v and actual %v", expectedOrder, dump.order)
+	}
+
+	for i, expected := range expectedOrder {
+		if expected != dump.order[i] {
+			t.Fatalf("mismatch between expected %v and actual %v", expectedOrder, dump.order)
+		}
+	}
+}
+
+func TestGnomeTerminalProfileHotkey(t *testing.T) {
+	hotkey, err := gnomeTerminalProfileHotkey([]string{
+		"b1dcc9dd-5262-4d8d-a863-c897e6d979b9",
+		"b0682302-667e-4ceb-b714-c05924ab92fc",
+	}, "b1dcc9dd-5262-4d8d-a863-c897e6d979b9")
+
+	if err != nil {
+		t.Errorf("wanted 1, got error: %v", err)
+	}
+
+	if hotkey != 1 {
+		t.Errorf("wanted 1, got: %d", hotkey)
 	}
 }
