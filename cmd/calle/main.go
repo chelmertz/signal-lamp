@@ -27,6 +27,8 @@ func vscode(newMode string) {
 	var newJson map[string]interface{}
 	err = json.Unmarshal(content, &newJson)
 	check(err)
+	// code --list-extensions --category themes
+	// ^ gives us all but the builtin themes
 
 	const vscodeLight = "Default Light+"
 	const vscodeDark = "Arc Dark"

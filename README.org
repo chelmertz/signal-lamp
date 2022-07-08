@@ -1,8 +1,39 @@
 * signal lamp
 
-Switches between dark- & light mode easily.
+Input a theme, run your definitions of that theme and apply them to running programs.
+
+Everything is accessible through scripts, but there will be a companion TUI for you to use too.
 
 Idempotent one off script, not a daemon.
+
+** Design
+
+1. Toggle between light & dark mode
+   - always dark or light for all applications
+   - no support for N themes
+2. Toggle between named themes in a file
+   - support for N themes
+   - hardcoded target (vscode, gnome terminal) themes in the "input theme name => theme for application X" files, which are possibly compiled ones
+3. ... 2, but extracting "input theme name => theme for application X" into configuration files
+   - "change theme in gnome terminal to X" can be a standalone script
+   - natural way towards the decoupled "list all themes for application X", "apply theme Y for application X"
+   - not messy to add support for one more application
+   - still very messy when applying the state
+     - I would want to save the changes into my dotfiles repo
+     - for example, persisting the emacs theme can be done in a million places, all equally disgusting to those that manages their config
+     - portability between distros etc goes out the window
+     - ... still, this is the best I've got. start small and iterate?
+4. "list themes available for application", customizable "apply theme for application" that takes input from either a TUI or saved configuration
+
+
+** User flow
+
+1. Enter the wizard with =signal-lamp -w=
+2. Choose a previously saved signal lamp, or start anew
+3. Pick a theme for each supported application
+   - The current theme should be the default one
+   - TODO idea: bubbletea TUI here, with one box for each of the applications, arrows for going back and selecting another theme for an application; making it useful for not only creating new "signal lamps" but
+
 
 ** Adding light/dark mode support for more /things/
 
