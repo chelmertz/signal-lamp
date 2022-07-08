@@ -24,6 +24,11 @@ Idempotent one off script, not a daemon.
      - portability between distros etc goes out the window
      - ... still, this is the best I've got. start small and iterate?
 4. "list themes available for application", customizable "apply theme for application" that takes input from either a TUI or saved configuration
+5. "apply theme for application"
+   - all application specific scripts takes an application theme
+   - a program in front (signal-lamp) of all application specific scripts
+     - it keeps the state to be able to cycle themes
+     - it can take any theme as input and "translate" it to application specific scripts
 
 
 ** User flow
