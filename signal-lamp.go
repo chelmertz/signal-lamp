@@ -163,14 +163,14 @@ func main() {
 		newMode = flag.Arg(0)
 	}
 
+	fmt.Println("new mode", newMode)
+
+	err = triggerScripts(newMode)
+	if err != nil {
+		panic(err)
+	}
+
 	if newMode != currentMode {
-		fmt.Println("new mode", newMode)
-
-		err = triggerScripts(newMode)
-		if err != nil {
-			panic(err)
-		}
-
 		err = saveMode(newMode)
 		if err != nil {
 			panic(err)
