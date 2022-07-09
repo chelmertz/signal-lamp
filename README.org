@@ -24,11 +24,18 @@ Idempotent one off script, not a daemon.
      - portability between distros etc goes out the window
      - ... still, this is the best I've got. start small and iterate?
 4. "list themes available for application", customizable "apply theme for application" that takes input from either a TUI or saved configuration
+   - disregarding "list themes" - far to expensive to implement, even for vscode
 5. "apply theme for application"
-   - all application specific scripts takes an application theme
-   - a program in front (signal-lamp) of all application specific scripts
+   - a) all application specific scripts takes an application theme
+   - b) a program in front (signal-lamp) of all application specific scripts
      - it keeps the state to be able to cycle themes
      - it can take any theme as input and "translate" it to application specific scripts
+6. started implementing 5b) as different scripts, will implement them as go files/libraries instead
+   - nobody will ever care about this coupling, if someone wants to support something new, they'll have to build signal lamp again and either pull the code or upstream it (yay)
+   - decoupling via processes would require somewhat unique names for all scripts, like =sl-gnometerminal=, which is ugly
+   - all helpers (like =proc()=) would need to have been copy- & pasted
+   - now, we can treat the toml configuration with stricter types (because of the tighter coupling, we know exactly which applications we should support)
+   - if anybody is interested in using signal-lamp/gnometerminal as a go library, go ahead
 
 
 ** User flow
