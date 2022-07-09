@@ -1,10 +1,10 @@
 * signal lamp
 
+Changes the theme of your applications in one fell swoop.
+
 Input a theme, run your definitions of that theme and apply them to running programs.
 
-Everything is accessible through scripts.
-
-Idempotent one off script, not a daemon.
+Everything is accessible through scripts. Idempotent one off script, not a daemon.
 
 ** Installation
 
