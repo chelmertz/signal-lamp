@@ -2,7 +2,7 @@
 
 Input a theme, run your definitions of that theme and apply them to running programs.
 
-Everything is accessible through scripts, but there will be a companion TUI for you to use too.
+Everything is accessible through scripts.
 
 Idempotent one off script, not a daemon.
 
