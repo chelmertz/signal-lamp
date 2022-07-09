@@ -147,9 +147,7 @@ func changeThemes(themes themes) {
 	if name, ok := themes["vscode"]; ok {
 		wg.Add(1)
 		go func(name string) {
-			fmt.Println("about to change vscode", name)
 			err := vscode.ChangeTheme(name)
-			fmt.Println("changed vscode")
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "error in vscode: %s\n", err)
 			}
