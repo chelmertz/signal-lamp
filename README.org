@@ -14,7 +14,7 @@ Install the program:
 go install github.com/chelmertz/signal-lamp
 #+end_src
 
-Run it:
+Run it, to create config folders:
 #+begin_src shell
 signal-lamp
 #+end_src
@@ -23,7 +23,7 @@ Configure *~/.config/signal-lamp/signal-lamp.toml*, see the next section.
 
 *** Configuration
 
-This is an example config:
+This is an example config (see /signal-lamp-example.toml/):
 
 #+begin_src toml
 [dark]
