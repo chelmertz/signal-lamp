@@ -6,7 +6,48 @@ Everything is accessible through scripts, but there will be a companion TUI for 
 
 Idempotent one off script, not a daemon.
 
-** Design
+** Adding theme support for more /things/
+
+Implement a =func(newName string) error= callback and call it in =changeThemes()= .
+
+** CLI commands
+
+*Toggle* the state, and save the new state to the config file:
+#+begin_src
+signal-lamp -toggle
+#+end_src
+
+*Query* the current state:
+#+begin_src shell
+signal-lamp -query
+#+end_src
+
+*Set* the current state:
+#+begin_src shell
+signal-lamp -theme dark
+#+end_src
+
+** contrib
+
+*** i3blocks for toggling & showing status
+
+I use i3blocks, so this is what I want to support.
+
+- [X] vscode
+- [ ] idea
+- [X] gnome terminal profile
+- [ ] bat
+- [ ] delta
+- [ ] powerline
+- [ ] doom emacs
+
+** Using themes, or more states than two, rather than "dark & light mode"
+
+All modes are configured in *$XDG_CONFIG_HOME/signal-lamp/signal-lamp.toml*.
+
+The wanted mode setting is stored in *$XDG_CONFIG_HOME/signal-lamp/wanted* and contains a single string, matching one of the available modes.
+
+** Design ideas
 
 1. Toggle between light & dark mode
    - always dark or light for all applications
@@ -36,72 +77,4 @@ Idempotent one off script, not a daemon.
    - all helpers (like =proc()=) would need to have been copy- & pasted
    - now, we can treat the toml configuration with stricter types (because of the tighter coupling, we know exactly which applications we should support)
    - if anybody is interested in using signal-lamp/gnometerminal as a go library, go ahead
-
-
-** User flow
-
-1. Enter the wizard with =signal-lamp -w=
-2. Choose a previously saved signal lamp, or start anew
-3. Pick a theme for each supported application
-   - The current theme should be the default one
-   - TODO idea: bubbletea TUI here, with one box for each of the applications, arrows for going back and selecting another theme for an application; making it useful for not only creating new "signal lamps" but
-
-
-** Adding light/dark mode support for more /things/
-
-Create folders in *XDG_CONFIG_HOME/signal-lamp/triggers/*, and in each folder, create executable scripts that reacts to =$1= (the first argument) being any mode (e.g. *dark* or *light*).
-
-Make the scripts contain some logic for changing the settings in your program.
-
------
-
-For example, if you'd like to log changes, this script would suffice:
-
-#+begin_src shell
-#!/bin/sh
-logger -t signal-lamp -- "changing to $1"
-#+end_src
-
-** CLI commands
-
-*Toggle* the state, and save the new state to the config file:
-#+begin_src
-signal-lamp -t
-#+end_src
-
-*Query* the current state:
-#+begin_src shell
-signal-lamp -q
-#+end_src
-
-** contrib
-
-*** i3blocks for toggling & showing status
-
-I use i3blocks, so this is what I want to support.
-
-*** my silly all in one helper
-
-When developing, this helps me iterate:
-
-#+begin_src shell
-go build ./cmd/calle && mv ./calle ~/.config/signal-lamp/triggers/calle                                                                                   ─╯
-#+end_src
-
-Built for my system, including:
-
-- [X] vscode
-- [ ] idea
-- [X] gnome terminal profile
-- [ ] bat
-- [ ] delta
-- [ ] powerline
-- [ ] doom emacs
-
-
-** Using themes, or more states than two, rather than "dark & light mode"
-
-All modes are stored in *$XDG_CONFIG_HOME/signal-lamp/modes*, one per line.
-
-The wanted mode setting is stored in *$XDG_CONFIG_HOME/signal-lamp/wanted* and contains a single string, matching the available modes.
-If the file is missing or contains something else, we fallback to the first mode in the *modes* file, and error out if that file does not exist.
+   - https://pkg.go.dev/github.com/hashicorp/go-plugin#section-readme could be useful for a more significant program
