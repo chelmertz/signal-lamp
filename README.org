@@ -25,7 +25,7 @@ Configure *~/.config/signal-lamp/signal-lamp.toml*, see the next section.
 
 This is an example config:
 
-#+begin_example
+#+begin_src toml
 [dark]
 gnometerminal = "dark"
 vscode = "Ayu Mirage"
@@ -33,9 +33,9 @@ vscode = "Ayu Mirage"
 [light]
 gnometerminal = "light"
 vscode = "Default Light+"
-#+end_example
+#+end_src
 
-When there are two or more themes defined (/dark/ and /light/ here), we cycle between them.
+When there are two or more themes defined (/dark/ and /light/ here, you can name these anything), we cycle between them.
 
 
 ** CLI commands
@@ -45,12 +45,12 @@ When there are two or more themes defined (/dark/ and /light/ here), we cycle be
 signal-lamp -cycle
 #+end_src
 
-*Query* the current state:
+*Query* the current theme:
 #+begin_src shell
 signal-lamp -query
 #+end_src
 
-*Set* the current state:
+*Set* the current theme:
 #+begin_src shell
 signal-lamp -theme dark
 #+end_src
@@ -73,7 +73,7 @@ I use i3blocks, so this is what I want to support.
 - [ ] powerline
 - [ ] doom emacs
 
-** Using themes, or more states than two, rather than "dark & light mode"
+** Using themes, rather than only "dark & light mode"
 
 All themes are configured in *$XDG_CONFIG_HOME/signal-lamp/signal-lamp.toml*.
 
