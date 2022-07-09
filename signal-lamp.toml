@@ -1,0 +1,7 @@
+[dark]
+gnometerminal = "dark"
+vscode = "Ayu Mirage"
+
+[light]
+gnometerminal = "light"
+vscode = "Default Light+"
