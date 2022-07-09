@@ -76,7 +76,11 @@ A personal checklist of what I want to support:
 
 *** i3blocks for toggling & showing status
 
-I use i3blocks, so this is what I want to support.
+#+begin_example
+[signallamp]
+command=signal-lamp -cycle
+full_text=signal lamp
+#+end_example
 
 ** Using themes, rather than only "dark & light mode"
 
