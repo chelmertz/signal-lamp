@@ -4,7 +4,7 @@ import "testing"
 
 func TestNextModeCycle(t *testing.T) {
 	c := &config{
-		currentMode: "b",
+		currentTheme: "b",
 		order: []string{
 			"a", "b",
 		},
@@ -13,22 +13,22 @@ func TestNextModeCycle(t *testing.T) {
 		t.Fatalf("couldn't next(): %s", err)
 	}
 
-	if c.currentMode != "a" {
-		t.Errorf("wanted a, got %s", c.currentMode)
+	if c.currentTheme != "a" {
+		t.Errorf("wanted a, got %s", c.currentTheme)
 	}
 
 	if err := c.next(); err != nil {
 		t.Fatalf("couldn't next(): %s", err)
 	}
 
-	if c.currentMode != "b" {
-		t.Errorf("wanted b, got %s", c.currentMode)
+	if c.currentTheme != "b" {
+		t.Errorf("wanted b, got %s", c.currentTheme)
 	}
 }
 
 func TestNextModeEmptyWanted(t *testing.T) {
 	c := &config{
-		currentMode: "",
+		currentTheme: "",
 		order: []string{
 			"a", "b",
 		},
@@ -38,7 +38,7 @@ func TestNextModeEmptyWanted(t *testing.T) {
 		t.Fatalf("couldn't next(): %s", err)
 	}
 
-	if c.currentMode != "a" {
-		t.Errorf("wanted a, got %s", c.currentMode)
+	if c.currentTheme != "a" {
+		t.Errorf("wanted a, got %s", c.currentTheme)
 	}
 }

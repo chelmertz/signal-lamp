@@ -47,27 +47,27 @@ func fileWithDefaultContent(filename, defaultContent string) (string, error) {
 type themes map[string]string
 
 type config struct {
-	currentMode string
-	order       []string
+	currentTheme string
+	order        []string
 	// key = theme name
-	availableModes map[string]themes
+	availableThemes map[string]themes
 }
 
-func (c *config) setMode(mode string) error {
+func (c *config) setTheme(theme string) error {
 	for _, v := range c.order {
-		if mode == v {
-			c.currentMode = mode
+		if theme == v {
+			c.currentTheme = theme
 			return nil
 		}
 	}
 
-	return fmt.Errorf("could not set mode to %s, it's not configured", mode)
+	return fmt.Errorf("could not set theme to %s, it's not configured", theme)
 }
 
 func (c *config) next() error {
 	for i, v := range c.order {
-		if c.currentMode == v {
-			c.currentMode = c.order[(i+1)%len(c.order)]
+		if c.currentTheme == v {
+			c.currentTheme = c.order[(i+1)%len(c.order)]
 			return nil
 		}
 	}
@@ -75,16 +75,16 @@ func (c *config) next() error {
 	if len(c.order) > 0 {
 		// this is auto-correcting:
 		// if wanted was a wrongly spelled item of something in order, next() will be correct from now on
-		c.currentMode = c.order[0]
+		c.currentTheme = c.order[0]
 		return nil
 	}
 
 	return errors.New("could not find the next() of an empty order")
 }
 
-func (c *config) availableModesString() string {
+func (c *config) availableThemesString() string {
 	var keys []string
-	for m := range c.availableModes {
+	for m := range c.availableThemes {
 		keys = append(keys, m)
 	}
 	return strings.Join(keys, ", ")
@@ -103,18 +103,18 @@ func readAndSetDefaultConfig() (*config, error) {
 		return nil, err
 	}
 
-	modesString, err := fileWithDefaultContent(filepath.Join(slDir, "signal-lamp.toml"), "[dark]\n[light]\n")
+	themesString, err := fileWithDefaultContent(filepath.Join(slDir, "signal-lamp.toml"), "[dark]\n[light]\n")
 	if err != nil {
 		return nil, err
 	}
-	var modes map[string]themes
-	_, err = toml.Decode(modesString, &modes)
+	var availableThemes map[string]themes
+	_, err = toml.Decode(themesString, &availableThemes)
 	if err != nil {
 		return nil, fmt.Errorf("invalid toml: %w", err)
 	}
 
 	order := make([]string, 0)
-	for key := range modes {
+	for key := range availableThemes {
 		order = append(order, key)
 	}
 
@@ -124,9 +124,9 @@ func readAndSetDefaultConfig() (*config, error) {
 	}
 
 	return &config{
-		currentMode:    strings.TrimSpace(wanted),
-		availableModes: modes,
-		order:          order,
+		currentTheme:    strings.TrimSpace(wanted),
+		availableThemes: availableThemes,
+		order:           order,
 	}, nil
 }
 
@@ -154,24 +154,24 @@ func changeThemes(themes themes) {
 	wg.Wait()
 }
 
-func saveMode(mode string) error {
+func saveTheme(theme string) error {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
 		return err
 	}
 
 	wanted := filepath.Join(configDir, "signal-lamp", "wanted")
-	err = os.WriteFile(wanted, []byte(mode), 0664)
+	err = os.WriteFile(wanted, []byte(theme), 0664)
 	if err != nil {
-		return fmt.Errorf("could not save wanted mode: %w", err)
+		return fmt.Errorf("could not save wanted theme: %w", err)
 	}
 	return nil
 }
 
 func main() {
 	var (
-		queryConfig = flag.Bool("query", false, "query current mode, without changing it")
-		toggle      = flag.Bool("toggle", false, "toggle config")
+		queryConfig = flag.Bool("query", false, "query current theme, without changing it")
+		cycle       = flag.Bool("cycle", false, "cycle configured themes")
 		theme       = flag.String("theme", "", "change theme")
 	)
 	flag.Parse()
@@ -182,28 +182,28 @@ func main() {
 	}
 
 	if *queryConfig {
-		fmt.Println("current mode:", config.currentMode)
-		fmt.Println("available modes:", config.availableModesString())
+		fmt.Println("current theme:", config.currentTheme)
+		fmt.Println("available themes:", config.availableThemesString())
 		os.Exit(0)
 	}
 
 	if *theme != "" {
-		err := config.setMode(*theme)
+		err := config.setTheme(*theme)
 		if err != nil {
 			log.Fatal(err)
 		}
-	} else if *toggle {
+	} else if *cycle {
 		err := config.next()
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 
-	changeThemes(config.availableModes[config.currentMode])
+	changeThemes(config.availableThemes[config.currentTheme])
 
-	err = saveMode(config.currentMode)
+	err = saveTheme(config.currentTheme)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("current mode:", config.currentMode)
+	fmt.Println("current theme:", config.currentTheme)
 }

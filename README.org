@@ -6,15 +6,43 @@ Everything is accessible through scripts, but there will be a companion TUI for 
 
 Idempotent one off script, not a daemon.
 
-** Adding theme support for more /things/
+** Installation
 
-Implement a =func(newName string) error= callback and call it in =changeThemes()= .
+Install the program:
+
+#+begin_src shell
+go install github.com/chelmertz/signal-lamp
+#+end_src
+
+Run it:
+#+begin_src shell
+signal-lamp
+#+end_src
+
+Configure *~/.config/signal-lamp/signal-lamp.toml*, see the next section.
+
+*** Configuration
+
+This is an example config:
+
+#+begin_example
+[dark]
+gnometerminal = "dark"
+vscode = "Ayu Mirage"
+
+[light]
+gnometerminal = "light"
+vscode = "Default Light+"
+#+end_example
+
+When there are two or more themes defined (/dark/ and /light/ here), we cycle between them.
+
 
 ** CLI commands
 
-*Toggle* the state, and save the new state to the config file:
+*Cycle* theme, and save the new to the config file:
 #+begin_src
-signal-lamp -toggle
+signal-lamp -cycle
 #+end_src
 
 *Query* the current state:
@@ -26,6 +54,10 @@ signal-lamp -query
 #+begin_src shell
 signal-lamp -theme dark
 #+end_src
+
+** Adding theme support for more /things/
+
+Implement a =func(newName string) error= callback and call it in =changeThemes()= .
 
 ** contrib
 
@@ -43,9 +75,9 @@ I use i3blocks, so this is what I want to support.
 
 ** Using themes, or more states than two, rather than "dark & light mode"
 
-All modes are configured in *$XDG_CONFIG_HOME/signal-lamp/signal-lamp.toml*.
+All themes are configured in *$XDG_CONFIG_HOME/signal-lamp/signal-lamp.toml*.
 
-The wanted mode setting is stored in *$XDG_CONFIG_HOME/signal-lamp/wanted* and contains a single string, matching one of the available modes.
+The wanted theme setting is stored in *$XDG_CONFIG_HOME/signal-lamp/wanted* and contains a single string, matching one of the available themes.
 
 ** Design ideas
 

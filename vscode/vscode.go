@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-func ChangeTheme(newMode string) error {
+func ChangeTheme(newProfile string) error {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
 		return fmt.Errorf("could not get os.UserConfigDir: %w", err)
@@ -25,7 +25,7 @@ func ChangeTheme(newMode string) error {
 		return fmt.Errorf("could not unmarshal settings.json: %w", err)
 	}
 
-	newJson["workbench.colorTheme"] = newMode
+	newJson["workbench.colorTheme"] = newProfile
 	newJsonString, err := json.MarshalIndent(newJson, "", "    ")
 	if err != nil {
 		return fmt.Errorf("could not marshal json to overwrite settings.json: %w", err)
