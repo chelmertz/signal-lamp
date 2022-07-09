@@ -41,7 +41,7 @@ When there are two or more themes defined (/dark/ and /light/ here, you can name
 ** CLI commands
 
 *Cycle* theme, and save the new to the config file:
-#+begin_src
+#+begin_src shell
 signal-lamp -cycle
 #+end_src
 
