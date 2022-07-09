@@ -133,26 +133,22 @@ func readAndSetDefaultConfig() (*config, error) {
 func changeThemes(themes themes) {
 	var wg sync.WaitGroup
 
-	if name, ok := themes["gnometerminal"]; ok {
-		wg.Add(1)
-		go func(name string) {
-			err := gnometerminal.ChangeProfile(name)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "error in gnometerminal: %s\n", err)
-			}
-			wg.Done()
-		}(name)
+	callbacks := map[string]func(string) error{
+		"gnometerminal": gnometerminal.ChangeProfile,
+		"vscode":        vscode.ChangeTheme,
 	}
 
-	if name, ok := themes["vscode"]; ok {
-		wg.Add(1)
-		go func(name string) {
-			err := vscode.ChangeTheme(name)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "error in vscode: %s\n", err)
-			}
-			wg.Done()
-		}(name)
+	for cbName, cb := range callbacks {
+		if themeName, ok := themes[cbName]; ok {
+			wg.Add(1)
+			go func(themeName_ string, cb_ func(string) error, cbName_ string) {
+				err := cb_(themeName_)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "error in %s: %s\n", cbName_, err)
+				}
+				wg.Done()
+			}(themeName, cb, cbName)
+		}
 	}
 
 	wg.Wait()
