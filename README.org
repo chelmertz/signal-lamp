@@ -59,11 +59,10 @@ signal-lamp -theme dark
 
 Implement a =func(newName string) error= callback and call it in =changeThemes()= .
 
-** contrib
+** Caveat
 
-*** i3blocks for toggling & showing status
-
-I use i3blocks, so this is what I want to support.
+These scripts work for me, on a standard Ubuntu installation with a bunch of X related scripts added.
+A personal checklist of what I want to support:
 
 - [X] vscode
 - [ ] idea
@@ -73,13 +72,19 @@ I use i3blocks, so this is what I want to support.
 - [ ] powerline
 - [ ] doom emacs
 
+** contrib
+
+*** i3blocks for toggling & showing status
+
+I use i3blocks, so this is what I want to support.
+
 ** Using themes, rather than only "dark & light mode"
 
 All themes are configured in *$XDG_CONFIG_HOME/signal-lamp/signal-lamp.toml*.
 
 The wanted theme setting is stored in *$XDG_CONFIG_HOME/signal-lamp/wanted* and contains a single string, matching one of the available themes.
 
-** Design ideas
+** Design iterations
 
 1. Toggle between light & dark mode
    - always dark or light for all applications
