@@ -90,17 +90,11 @@ func ChangeProfile(newProfile string) error {
 		// focus window
 
 		// spent a lot of time going down the "wmctrl -ai windowId" road here, don't do that
-		_, err = proc("xdotool", "windowfocus", "--sync", windowId)
-		if err != nil {
-			return fmt.Errorf("could not focus terminal window %s with xdotool: %w", windowId, err)
-		}
-
-		// set current profile
 		// WARNING: this relies on the "Enable the menu accelerator key (F10 by default)"
 		// setting being active, you find it in Preferences > Global > General
-		_, err = proc("xdotool", "key", "--clearmodifiers", "Shift+F10", "r", fmt.Sprint(newProfileIndex))
+		_, err = proc("xdotool", "windowfocus", "--sync", windowId, "key", "--clearmodifiers", "Shift+F10", "r", fmt.Sprint(newProfileIndex))
 		if err != nil {
-			return fmt.Errorf("could not set profile on terminal window with xdotool: %w", err)
+			return fmt.Errorf("could not set profile for terminal window %s with xdotool: %w", windowId, err)
 		}
 	}
 
