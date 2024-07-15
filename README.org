@@ -1,5 +1,7 @@
 * signal lamp
 
+*2024: See a better approach at https://iamnearlythere.com/dark-mode-ubuntu-i3/*
+
 Changes the theme of your applications in one fell swoop.
 
 Input a theme, run your definitions of that theme and apply them to running programs.
